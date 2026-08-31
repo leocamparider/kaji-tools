@@ -56,9 +56,16 @@
   .mq-input { width:100%; font-size:12px; font-style:italic; background:var(--panel2); border:1px solid var(--borderSoft); color:var(--text); border-radius:5px; padding:6px 8px; outline:none; }
   .card-body { padding:14px; display:flex; flex-direction:column; gap:14px; }
 
-  .blade-row { margin-bottom:9px; }
-  .blade-top { display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; }
-  .blade-num { width:38px; background:transparent; border:none; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:11px; text-align:right; outline:none; }
+  .blade-row { margin-bottom:14px; background:var(--panel2); border-radius:8px; padding:10px 12px; }
+  .blade-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:12px; }
+  .blade-name { display:flex; align-items:center; gap:6px; }
+  .blade-lv { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:11px; padding:1px 6px; border-radius:4px; background:var(--leo); color:var(--void); }
+  .blade-xp-edit { width:44px; background:transparent; border:none; color:var(--faint); font-family:'JetBrains Mono',monospace; font-size:10px; text-align:right; outline:none; }
+  .blade-actions { display:flex; gap:6px; margin-top:8px; }
+  .blade-action-btn { flex:1; background:var(--panel); border:1px solid var(--borderSoft); border-radius:6px; padding:6px 4px; font-size:10px; color:var(--text); text-align:center; position:relative; }
+  .blade-action-btn .xp-tag { display:block; color:var(--leo); font-family:'JetBrains Mono',monospace; font-size:9px; margin-top:1px; }
+  .xp-flash { position:absolute; top:-14px; right:6px; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:var(--leo); opacity:0; pointer-events:none; transition:all .8s ease; }
+  .xp-flash.show { opacity:1; transform:translateY(-14px); }
   .bar-track { width:100%; background:var(--panel2); border:1px solid var(--borderSoft); height:9px; overflow:hidden; }
   .bar-fill { height:100%; clip-path:polygon(0 0,100% 0,94% 50%,100% 100%,0 100%); transition:width .25s; }
 
@@ -123,14 +130,15 @@
   .calc-result-sub { font-size:11px; color:var(--muted); margin-bottom:10px; }
   .calc-chart { height:150px; }
 
-  .kanban { display:grid; grid-template-columns:repeat(5,minmax(130px,1fr)); gap:8px; overflow-x:auto; padding-bottom:4px; }
-  .kanban-col { background:var(--panel2); border-radius:8px; padding:8px; min-width:130px; }
-  .kanban-col-title { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:6px; font-family:'JetBrains Mono',monospace; }
-  .kanban-card { background:var(--panel); border:1px solid var(--borderSoft); border-radius:6px; padding:7px 8px; margin-bottom:6px; font-size:12px; }
-  .kanban-card input { width:100%; background:transparent; border:none; color:var(--text); font-size:12px; outline:none; }
-  .kanban-card-row { display:flex; justify-content:space-between; align-items:center; margin-top:5px; }
-  .kanban-card select { font-size:10px; padding:2px 3px; }
-  .kanban-add { width:100%; background:none; border:1px dashed var(--borderSoft); border-radius:6px; padding:6px; color:var(--faint); font-size:11px; margin-top:2px; }
+  .kanban-stage { margin-bottom:10px; }
+  .kanban-stage-title { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:6px; font-family:'JetBrains Mono',monospace; display:flex; align-items:center; gap:6px; }
+  .kanban-stage-title .count { background:var(--panel2); border-radius:8px; padding:0 6px; }
+  .kanban-card { background:var(--panel2); border:1px solid var(--borderSoft); border-radius:6px; padding:8px 10px; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+  .kanban-card input[type=text] { flex:1; min-width:0; background:transparent; border:none; color:var(--text); font-size:13px; outline:none; }
+  .kanban-card select { font-size:10px; padding:3px 4px; flex-shrink:0; }
+  .kanban-add-row { display:flex; gap:6px; margin-top:4px; }
+  .kanban-add-row input { flex:1; font-size:12px; border-radius:5px; padding:7px 9px; background:var(--panel2); border:1px solid var(--borderSoft); color:var(--text); outline:none; }
+  .kanban-add-row button { background:var(--panel2); border:1px solid var(--borderSoft); border-radius:5px; padding:0 10px; }
 
   .weight-add { display:flex; gap:6px; margin-bottom:10px; }
   .weight-add input { flex:1; background:var(--panel2); border:1px solid var(--borderSoft); color:var(--text); border-radius:5px; padding:6px 8px; font-size:12px; outline:none; }
@@ -170,6 +178,7 @@
       <div class="streak" id="streakBox">🔥 <b id="streakNum">0</b> giorni</div>
       <button class="btn" id="logBtn">Log oggi</button>
       <button class="btn btn-icon" id="resetBtn" title="Reset">⟲</button>
+      <button class="btn btn-danger" id="resetConfirmBtn" style="display:none">Conferma reset</button>
     </div>
   </div>
 
@@ -296,9 +305,9 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7
 function defaultState() {
   return {
     leo: { status:'yellow', mainQuest:'', blades:[
-      {id:'body',name:'Body',value:0},{id:'mind',name:'Mind',value:0},
-      {id:'career',name:'Career',value:0},{id:'creation',name:'Creation',value:0},
-      {id:'independence',name:'Independence',value:0}
+      {id:'body',name:'Body',xp:0},{id:'mind',name:'Mind',xp:0},
+      {id:'career',name:'Career',xp:0},{id:'creation',name:'Creation',xp:0},
+      {id:'independence',name:'Independence',xp:0}
     ], tasks:[] },
     zenkai: { status:'yellow', mainQuest:'', kpis:[
       {id:uid(),label:'Membri community',value:0,target:0,unit:''},
@@ -329,15 +338,29 @@ if (!state.finance.transactions) state.finance.transactions = [];
 if (!state.zenkai.content) state.zenkai.content = [];
 if (!state.arise.content) state.arise.content = [];
 if (!state.arise.weight) state.arise.weight = [];
+// migrate blades from old 0-100 "value" model to XP model
+state.leo.blades.forEach(b=>{ if (b.xp===undefined) { b.xp = Math.round(Number(b.value||0) * 5); delete b.value; } });
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 function clamp(n,min,max){ return Math.max(min, Math.min(max, Number(n)||0)); }
 function pct(val,target){ return target>0 ? clamp((val/target)*100,0,100) : 0; }
 
+// ---------- XP / LEVELING ----------
+const XP_PER_LEVEL = 100;
+function bladeLevel(xp){ return Math.floor(xp / XP_PER_LEVEL) + 1; }
+function bladeLevelProgress(xp){ return xp % XP_PER_LEVEL; }
+const BLADE_ACTIONS = {
+  body: [ {label:'Workout', xp:20}, {label:'Cardio', xp:10} ],
+  mind: [ {label:'Studio', xp:15}, {label:'Lettura', xp:10} ],
+  career: [ {label:'Task completato', xp:15}, {label:'Milestone', xp:30} ],
+  creation: [ {label:'Contenuto pubblicato', xp:25}, {label:'Sessione creativa', xp:10} ],
+  independence: [ {label:'Investimento fatto', xp:20}, {label:'Obiettivo raggiunto', xp:30} ],
+};
+
 // ---------- SCORES ----------
 function leoScore(){
   const b = state.leo.blades;
-  const bladeAvg = b.length ? b.reduce((s,x)=>s+Number(x.value||0),0)/b.length : 0;
+  const bladeAvg = b.length ? b.reduce((s,x)=>s+Math.min(100, bladeLevel(x.xp)*10),0)/b.length : 0;
   return Math.round(bladeAvg);
 }
 function kpiScore(kpis){
@@ -384,7 +407,7 @@ function renderTaskList(container, tasks, color, onChange){
   container.appendChild(list);
 }
 
-function renderKpiList(container, kpis, color, onChange){
+function renderKpiList(container, kpis, color, scoreKey, onStructureChange){
   container.innerHTML = '';
   kpis.forEach(k=>{
     const row = document.createElement('div');
@@ -402,11 +425,18 @@ function renderKpiList(container, kpis, color, onChange){
       </div>
       <div class="bar-track"><div class="bar-fill" style="width:${pct(k.value,k.target)}%;background:linear-gradient(90deg, ${color}55, ${color});box-shadow:0 0 8px ${color}88"></div></div>
     `;
-    row.querySelector('.kpi-label').oninput = e => { k.label = e.target.value; save(); refreshScores(); };
-    row.querySelector('.val').oninput = e => { k.value = Number(e.target.value); onChange(); };
-    row.querySelector('.tgt').oninput = e => { k.target = Number(e.target.value); onChange(); };
+    const barFill = row.querySelector('.bar-fill');
+    const liveUpdate = () => {
+      save();
+      barFill.style.width = pct(k.value,k.target) + '%';
+      const scoreEl = document.getElementById('score-'+scoreKey);
+      if(scoreEl) scoreEl.textContent = kpiScore(kpis);
+    };
+    row.querySelector('.kpi-label').oninput = e => { k.label = e.target.value; save(); };
+    row.querySelector('.val').oninput = e => { k.value = Number(e.target.value); liveUpdate(); };
+    row.querySelector('.tgt').oninput = e => { k.target = Number(e.target.value); liveUpdate(); };
     row.querySelector('.unit').oninput = e => { k.unit = e.target.value; save(); };
-    row.querySelector('.icon-btn').onclick = () => { const idx=kpis.indexOf(k); kpis.splice(idx,1); onChange(); };
+    row.querySelector('.icon-btn').onclick = () => { const idx=kpis.indexOf(k); kpis.splice(idx,1); onStructureChange(); };
     container.appendChild(row);
   });
 
@@ -420,7 +450,7 @@ function renderKpiList(container, kpis, color, onChange){
     const unit = addRow.querySelector('.a-unit').value.trim();
     if(!label || !target) return;
     kpis.push({id:uid(), label, value:0, target:Number(target), unit});
-    onChange();
+    onStructureChange();
   };
   container.appendChild(addRow);
 }
@@ -452,7 +482,7 @@ function makeCard(cfg){
           <div><div class="card-title">${cfg.title}</div><div class="card-sub">${cfg.sub}</div></div>
         </div>
         <div class="card-score-wrap">
-          <div class="card-score" style="color:${cfg.color}">${cfg.score}</div>
+          <div class="card-score" id="score-${cfg.key}" style="color:${cfg.color}">${cfg.score}</div>
           <div class="statuspills"></div>
         </div>
       </div>
@@ -474,15 +504,54 @@ function renderDashboard(){
 
   // LEO
   wrap.appendChild(makeCard({
-    icon:'⚔️', title:'LEO', sub:'Le cinque lame', color:'var(--leo)', obj:state.leo, score:leoScore(),
+    key:'leo', icon:'⚔️', title:'LEO', sub:'Le cinque lame', color:'var(--leo)', obj:state.leo, score:leoScore(),
     fillBody:(body)=>{
       const bladesLabel = document.createElement('div'); bladesLabel.className='label'; bladesLabel.style.marginBottom='8px'; bladesLabel.textContent='Blades';
       body.appendChild(bladesLabel);
       const bladesWrap = document.createElement('div');
       state.leo.blades.forEach(b=>{
         const row = document.createElement('div'); row.className='blade-row';
-        row.innerHTML = `<div class="blade-top"><span>${b.name}</span><input class="blade-num" type="number" min="0" max="100" value="${b.value}"></div><div class="bar-track"><div class="bar-fill" style="width:${b.value}%;background:linear-gradient(90deg,var(--leo)55,var(--leo));box-shadow:0 0 8px #5EEAD488"></div></div>`;
-        row.querySelector('.blade-num').oninput = e => { b.value = clamp(e.target.value,0,100); save(); renderDashboard(); };
+        const lv = bladeLevel(b.xp), prog = bladeLevelProgress(b.xp);
+        const actions = BLADE_ACTIONS[b.id] || [];
+        row.innerHTML = `
+          <div class="blade-top">
+            <div class="blade-name"><span class="blade-lv">LV ${lv}</span><span>${b.name}</span></div>
+            <div style="position:relative">
+              <span class="xp-flash">+0</span>
+              <input class="blade-xp-edit" type="number" value="${b.xp}"> xp
+            </div>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${prog}%;background:linear-gradient(90deg,var(--leo)55,var(--leo));box-shadow:0 0 8px #5EEAD488"></div></div>
+          <div class="blade-actions"></div>
+        `;
+        const barFill = row.querySelector('.bar-fill');
+        const lvBadge = row.querySelector('.blade-lv');
+        const xpInput = row.querySelector('.blade-xp-edit');
+        const flash = row.querySelector('.xp-flash');
+
+        function applyXp(newXp, delta){
+          b.xp = Math.max(0, newXp);
+          save();
+          const nl = bladeLevel(b.xp), np = bladeLevelProgress(b.xp);
+          lvBadge.textContent = 'LV ' + nl;
+          barFill.style.width = np + '%';
+          xpInput.value = b.xp;
+          document.getElementById('score-leo').textContent = leoScore();
+          if(delta){
+            flash.textContent = (delta>0?'+':'') + delta + ' xp';
+            flash.classList.remove('show'); void flash.offsetWidth; flash.classList.add('show');
+            setTimeout(()=>flash.classList.remove('show'), 800);
+          }
+        }
+        xpInput.oninput = e => applyXp(Number(e.target.value), 0);
+
+        const actionsWrap = row.querySelector('.blade-actions');
+        actions.forEach(a=>{
+          const btn = document.createElement('button'); btn.className='blade-action-btn';
+          btn.innerHTML = `${a.label}<span class="xp-tag">+${a.xp} XP</span>`;
+          btn.onclick = () => applyXp(b.xp + a.xp, a.xp);
+          actionsWrap.appendChild(btn);
+        });
         bladesWrap.appendChild(row);
       });
       body.appendChild(bladesWrap);
@@ -496,18 +565,18 @@ function renderDashboard(){
 
   // ZENKAI
   wrap.appendChild(makeCard({
-    icon:'🔥', title:'ZENKAI', sub:'Community & brand', color:'var(--zenkai)', obj:state.zenkai, score:kpiScore(state.zenkai.kpis),
+    key:'zenkai', icon:'🔥', title:'ZENKAI', sub:'Community & brand', color:'var(--zenkai)', obj:state.zenkai, score:kpiScore(state.zenkai.kpis),
     fillBody:(body)=>{
       const kLabel = document.createElement('div'); kLabel.className='label'; kLabel.style.marginBottom='8px'; kLabel.textContent='Metriche';
       body.appendChild(kLabel);
       const kWrap = document.createElement('div'); body.appendChild(kWrap);
-      const reRenderK = () => { save(); renderKpiList(kWrap, state.zenkai.kpis, 'var(--zenkai)', reRenderK); renderDashboard(); };
-      renderKpiList(kWrap, state.zenkai.kpis, 'var(--zenkai)', reRenderK);
+      const reRenderK = () => { save(); renderKpiList(kWrap, state.zenkai.kpis, 'var(--zenkai)', 'zenkai', reRenderK); renderDashboard(); };
+      renderKpiList(kWrap, state.zenkai.kpis, 'var(--zenkai)', 'zenkai', reRenderK);
 
       const cLabel = document.createElement('div'); cLabel.className='label'; cLabel.style.marginTop='4px'; cLabel.textContent='Content Pipeline';
       body.appendChild(cLabel);
       const cWrap = document.createElement('div'); body.appendChild(cWrap);
-      renderKanban(cWrap, state.zenkai.content, 'var(--zenkai)');
+      renderKanban(cWrap, state.zenkai.content);
 
       const tLabel = document.createElement('div'); tLabel.className='label'; tLabel.style.marginTop='4px'; tLabel.textContent='Task';
       body.appendChild(tLabel);
@@ -519,13 +588,13 @@ function renderDashboard(){
 
   // ARISE
   wrap.appendChild(makeCard({
-    icon:'🏋️', title:'ARISE', sub:'PT & method', color:'var(--arise)', obj:state.arise, score:kpiScore(state.arise.kpis),
+    key:'arise', icon:'🏋️', title:'ARISE', sub:'PT & method', color:'var(--arise)', obj:state.arise, score:kpiScore(state.arise.kpis),
     fillBody:(body)=>{
       const kLabel = document.createElement('div'); kLabel.className='label'; kLabel.style.marginBottom='8px'; kLabel.textContent='Metriche';
       body.appendChild(kLabel);
       const kWrap = document.createElement('div'); body.appendChild(kWrap);
-      const reRenderK = () => { save(); renderKpiList(kWrap, state.arise.kpis, 'var(--arise)', reRenderK); renderDashboard(); };
-      renderKpiList(kWrap, state.arise.kpis, 'var(--arise)', reRenderK);
+      const reRenderK = () => { save(); renderKpiList(kWrap, state.arise.kpis, 'var(--arise)', 'arise', reRenderK); renderDashboard(); };
+      renderKpiList(kWrap, state.arise.kpis, 'var(--arise)', 'arise', reRenderK);
 
       const wLabel = document.createElement('div'); wLabel.className='label'; wLabel.style.marginTop='4px'; wLabel.textContent='Bodyweight';
       body.appendChild(wLabel);
@@ -535,7 +604,7 @@ function renderDashboard(){
       const cLabel = document.createElement('div'); cLabel.className='label'; cLabel.style.marginTop='4px'; cLabel.textContent='Content Pipeline';
       body.appendChild(cLabel);
       const cWrap = document.createElement('div'); body.appendChild(cWrap);
-      renderKanban(cWrap, state.arise.content, 'var(--arise)');
+      renderKanban(cWrap, state.arise.content);
 
       const tLabel = document.createElement('div'); tLabel.className='label'; tLabel.style.marginTop='4px'; tLabel.textContent='Task';
       body.appendChild(tLabel);
@@ -548,32 +617,33 @@ function renderDashboard(){
   renderTrendChart();
 }
 
-// ---------- CONTENT PIPELINE (kanban) ----------
+// ---------- CONTENT PIPELINE (vertical, no prompt(), no full-card rerender on type) ----------
 const CONTENT_STAGES = ['Idea','Girato','Editing','Programmato','Pubblicato'];
-function renderKanban(container, items, color){
+function renderKanban(container, items) {
   container.innerHTML = '';
-  const board = document.createElement('div'); board.className='kanban';
   CONTENT_STAGES.forEach(stage=>{
-    const col = document.createElement('div'); col.className='kanban-col';
-    col.innerHTML = `<div class="kanban-col-title">${stage}</div>`;
-    items.filter(it=>it.stage===stage).forEach(it=>{
+    const stageItems = items.filter(it=>it.stage===stage);
+    const sec = document.createElement('div'); sec.className='kanban-stage';
+    sec.innerHTML = `<div class="kanban-stage-title">${stage} <span class="count">${stageItems.length}</span></div>`;
+    stageItems.forEach(it=>{
       const card = document.createElement('div'); card.className='kanban-card';
-      card.innerHTML = `<input type="text" value="${it.title}"><div class="kanban-card-row"><select></select><button class="icon-btn">${ICONS.trash}</button></div>`;
+      card.innerHTML = `<input type="text" value="${it.title}"><select></select><button class="icon-btn">${ICONS.trash}</button>`;
       card.querySelector('input').oninput = e => { it.title = e.target.value; save(); };
       const sel = card.querySelector('select');
       CONTENT_STAGES.forEach(s=>{ const op=document.createElement('option'); op.value=s; op.textContent=s; if(s===stage) op.selected=true; sel.appendChild(op); });
       sel.onchange = e => { it.stage = e.target.value; save(); renderDashboard(); };
       card.querySelector('.icon-btn').onclick = () => { const idx=items.indexOf(it); items.splice(idx,1); save(); renderDashboard(); };
-      col.appendChild(card);
+      sec.appendChild(card);
     });
-    if(stage==='Idea'){
-      const addBtn = document.createElement('button'); addBtn.className='kanban-add'; addBtn.textContent='+ Nuovo';
-      addBtn.onclick = () => { const title = prompt('Titolo contenuto:'); if(!title) return; items.push({id:uid(), title, stage:'Idea'}); save(); renderDashboard(); };
-      col.appendChild(addBtn);
-    }
-    board.appendChild(col);
+    container.appendChild(sec);
   });
-  container.appendChild(board);
+  const addRow = document.createElement('div'); addRow.className='kanban-add-row';
+  addRow.innerHTML = `<input type="text" placeholder="Nuova idea di contenuto..."><button>${ICONS.plus}</button>`;
+  const input = addRow.querySelector('input');
+  const submit = () => { const v=input.value.trim(); if(!v) return; items.push({id:uid(), title:v, stage:'Idea'}); input.value=''; save(); renderDashboard(); };
+  addRow.querySelector('button').onclick = submit;
+  input.onkeydown = e => { if(e.key==='Enter') submit(); };
+  container.appendChild(addRow);
 }
 
 // ---------- BODYWEIGHT TRACKER ----------
@@ -614,8 +684,8 @@ function renderWeightTracker(container){
 // ---------- VITA ----------
 function renderVita(){
   const kWrap = document.getElementById('vitaKpis');
-  const reRenderK = () => { save(); renderKpiList(kWrap, state.vita.kpis, 'var(--vita)', reRenderK); };
-  renderKpiList(kWrap, state.vita.kpis, 'var(--vita)', reRenderK);
+  const reRenderK = () => { save(); renderKpiList(kWrap, state.vita.kpis, 'var(--vita)', 'vita', reRenderK); };
+  renderKpiList(kWrap, state.vita.kpis, 'var(--vita)', 'vita', reRenderK);
 
   const tWrap = document.getElementById('vitaTasks');
   const reRenderT = () => { save(); renderTaskList(tWrap, state.vita.tasks, 'var(--vita)', reRenderT); };
@@ -763,12 +833,20 @@ document.getElementById('logBtn').onclick = () => {
   renderStreak();
 };
 
-// ---------- RESET ----------
+// ---------- RESET (no confirm(), blocked on iOS home-screen apps) ----------
 document.getElementById('resetBtn').onclick = () => {
-  if (!confirm('Confermi il reset completo? Tutti i dati verranno persi.')) return;
+  const btn = document.getElementById('resetBtn');
+  const confirmBtn = document.getElementById('resetConfirmBtn');
+  btn.style.display = 'none';
+  confirmBtn.style.display = 'inline-block';
+  setTimeout(()=>{ confirmBtn.style.display='none'; btn.style.display='flex'; }, 4000);
+};
+document.getElementById('resetConfirmBtn').onclick = () => {
   state = defaultState();
   save();
   renderAll();
+  document.getElementById('resetConfirmBtn').style.display = 'none';
+  document.getElementById('resetBtn').style.display = 'flex';
 };
 
 // ---------- TABS ----------
