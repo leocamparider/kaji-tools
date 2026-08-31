@@ -98,6 +98,58 @@
   select { background:var(--panel); border:1px solid var(--borderSoft); color:var(--text); font-size:11px; border-radius:4px; padding:3px 5px; }
   .checkbox { width:15px; height:15px; }
   .fin-add { display:grid; grid-template-columns:1fr; gap:5px; margin-top:8px; }
+
+  .hud-strip { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .clock-box { display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:8px 12px; }
+  .clock-digital { font-family:'JetBrains Mono',monospace; }
+  .clock-time { font-size:18px; font-weight:700; color:var(--text); line-height:1; }
+  .clock-date { font-size:10px; color:var(--muted); margin-top:2px; }
+  .streak { display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; }
+  .streak b { color:var(--yellow); }
+
+  .summary-strip { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:14px; }
+  @media(min-width:700px){ .summary-strip{ grid-template-columns:repeat(4,1fr); } }
+  .summary-cell { background:var(--panel2); border-radius:8px; padding:10px 12px; }
+  .summary-cell .label { margin-bottom:3px; }
+  .summary-cell .sval { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; }
+
+  .calc-row { margin-bottom:14px; }
+  .calc-top { display:flex; justify-content:space-between; margin-bottom:5px; }
+  .calc-label { font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .calc-val { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px; }
+  input[type=range] { width:100%; accent-color:var(--finance); }
+  .calc-result { background:var(--panel2); border-radius:8px; padding:14px; margin-top:6px; }
+  .calc-result-val { color:var(--finance); font-family:'JetBrains Mono',monospace; font-weight:700; font-size:24px; margin-bottom:4px; }
+  .calc-result-sub { font-size:11px; color:var(--muted); margin-bottom:10px; }
+  .calc-chart { height:150px; }
+
+  .kanban { display:grid; grid-template-columns:repeat(5,minmax(130px,1fr)); gap:8px; overflow-x:auto; padding-bottom:4px; }
+  .kanban-col { background:var(--panel2); border-radius:8px; padding:8px; min-width:130px; }
+  .kanban-col-title { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:6px; font-family:'JetBrains Mono',monospace; }
+  .kanban-card { background:var(--panel); border:1px solid var(--borderSoft); border-radius:6px; padding:7px 8px; margin-bottom:6px; font-size:12px; }
+  .kanban-card input { width:100%; background:transparent; border:none; color:var(--text); font-size:12px; outline:none; }
+  .kanban-card-row { display:flex; justify-content:space-between; align-items:center; margin-top:5px; }
+  .kanban-card select { font-size:10px; padding:2px 3px; }
+  .kanban-add { width:100%; background:none; border:1px dashed var(--borderSoft); border-radius:6px; padding:6px; color:var(--faint); font-size:11px; margin-top:2px; }
+
+  .weight-add { display:flex; gap:6px; margin-bottom:10px; }
+  .weight-add input { flex:1; background:var(--panel2); border:1px solid var(--borderSoft); color:var(--text); border-radius:5px; padding:6px 8px; font-size:12px; outline:none; }
+  .weight-add button { background:var(--panel2); border:1px solid var(--borderSoft); border-radius:5px; padding:0 10px; color:var(--arise); }
+  .weight-chart { height:130px; margin-bottom:8px; }
+  .weight-list { display:flex; flex-direction:column; gap:4px; max-height:110px; overflow-y:auto; }
+  .weight-row { display:flex; justify-content:space-between; background:var(--panel2); border-radius:5px; padding:5px 8px; font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--muted); }
+
+  .txn-add { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:5px; margin-bottom:8px; }
+  .txn-add input, .txn-add select { font-size:11px; border-radius:5px; padding:6px 7px; background:var(--panel2); border:1px solid var(--borderSoft); color:var(--text); outline:none; width:100%; }
+  .txn-row { display:flex; justify-content:space-between; align-items:center; background:var(--panel2); border-radius:5px; padding:6px 9px; margin-bottom:4px; font-size:12px; }
+  .txn-amt.spesa { color:var(--red); } .txn-amt.entrata { color:var(--green); } .txn-amt.trasferimento { color:var(--muted); }
+
+  .pomo-box { display:flex; flex-direction:column; align-items:center; gap:10px; padding:10px 0; }
+  .pomo-time { font-family:'JetBrains Mono',monospace; font-size:38px; font-weight:700; }
+  .pomo-modes { display:flex; gap:6px; }
+  .pomo-mode { background:var(--panel2); border:1px solid var(--borderSoft); border-radius:6px; padding:6px 12px; font-size:11px; color:var(--muted); }
+  .pomo-mode.active { color:var(--void); background:var(--leo); border-color:var(--leo); }
+  .pomo-controls { display:flex; gap:8px; }
 </style>
 </head>
 <body>
@@ -108,6 +160,14 @@
       <div class="tagline" id="tagline">Forge yourself. Sharpen every blade.</div>
     </div>
     <div class="topbtns">
+      <div class="clock-box">
+        <canvas id="analogClock" width="34" height="34"></canvas>
+        <div class="clock-digital">
+          <div class="clock-time" id="digitalTime">--:--:--</div>
+          <div class="clock-date" id="digitalDate">-- --- ----</div>
+        </div>
+      </div>
+      <div class="streak" id="streakBox">🔥 <b id="streakNum">0</b> giorni</div>
       <button class="btn" id="logBtn">Log oggi</button>
       <button class="btn btn-icon" id="resetBtn" title="Reset">⟲</button>
     </div>
@@ -131,10 +191,64 @@
       </div>
       <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
     </div>
+    <div class="panel">
+      <div class="panel-head"><span class="label">⏱ Focus Timer</span></div>
+      <div class="pomo-box">
+        <div class="pomo-time" id="pomoTime">25:00</div>
+        <div class="pomo-modes">
+          <button class="pomo-mode active" data-min="25">Focus</button>
+          <button class="pomo-mode" data-min="5">Pausa breve</button>
+          <button class="pomo-mode" data-min="15">Pausa lunga</button>
+        </div>
+        <div class="pomo-controls">
+          <button class="btn" id="pomoStart">Start</button>
+          <button class="btn" id="pomoReset">Reset</button>
+        </div>
+      </div>
+    </div>
     <div class="grid3" id="projectCards"></div>
   </div>
 
   <div class="section" id="sec-finance">
+    <div class="summary-strip" id="summaryStrip"></div>
+
+    <div class="panel">
+      <div class="panel-head"><span class="label">🧾 Transazioni recenti</span></div>
+      <div class="txn-add">
+        <input type="text" id="txnName" placeholder="Descrizione">
+        <input type="number" id="txnAmt" placeholder="Importo €">
+        <select id="txnType"><option value="Spesa">Spesa</option><option value="Entrata">Entrata</option><option value="Trasferimento">Trasferimento</option></select>
+        <button class="btn" id="txnAddBtn">+</button>
+      </div>
+      <div id="txnList"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><span class="label">📈 Investment Calculator</span></div>
+      <div class="calc-row">
+        <div class="calc-top"><span class="calc-label">Importo iniziale</span><span class="calc-val" id="c-startVal"></span></div>
+        <input type="range" id="c-start" min="0" max="20000" step="100" value="1000">
+      </div>
+      <div class="calc-row">
+        <div class="calc-top"><span class="calc-label">Deposito mensile</span><span class="calc-val" id="c-monthlyVal"></span></div>
+        <input type="range" id="c-monthly" min="0" max="2000" step="50" value="200">
+      </div>
+      <div class="calc-row">
+        <div class="calc-top"><span class="calc-label">Orizzonte temporale</span><span class="calc-val" id="c-yearsVal"></span></div>
+        <input type="range" id="c-years" min="1" max="40" step="1" value="10">
+      </div>
+      <div class="calc-row">
+        <div class="calc-top"><span class="calc-label">Rendimento annuo</span><span class="calc-val" id="c-rateVal"></span></div>
+        <input type="range" id="c-rate" min="0" max="20" step="0.5" value="8">
+      </div>
+      <div class="calc-result">
+        <div class="label">Saldo proiettato</div>
+        <div class="calc-result-val" id="c-final">€0</div>
+        <div class="calc-result-sub" id="c-free">+€0 da interessi composti</div>
+        <div class="calc-chart"><canvas id="calcChart"></canvas></div>
+      </div>
+    </div>
+
     <div class="panel">
       <div class="panel-head"><span class="label">💳 Wallets</span></div>
       <div id="walletsList"></div>
@@ -190,15 +304,15 @@ function defaultState() {
       {id:uid(),label:'Membri community',value:0,target:0,unit:''},
       {id:uid(),label:'Eventi/mese',value:0,target:0,unit:''},
       {id:uid(),label:'Membri crew',value:0,target:0,unit:''}
-    ], tasks:[] },
+    ], tasks:[], content:[] },
     arise: { status:'yellow', mainQuest:'', kpis:[
       {id:uid(),label:'Clienti attivi',value:0,target:0,unit:''},
       {id:uid(),label:'Sessioni/settimana',value:0,target:0,unit:''},
       {id:uid(),label:'Schede fatte',value:0,target:0,unit:''}
-    ], tasks:[] },
+    ], tasks:[], content:[], weight:[] },
     vita: { kpis:[{id:uid(),label:'Libri letti',value:0,target:0,unit:''}], tasks:[] },
     finance: {
-      wallets:[], budgets:[], goals:[], subs:[], debts:[]
+      wallets:[], budgets:[], goals:[], subs:[], debts:[], transactions:[]
     },
     history: []
   };
@@ -211,6 +325,10 @@ if (!state) state = defaultState();
 const d = defaultState();
 for (const k of Object.keys(d)) if (!(k in state)) state[k] = d[k];
 if (!state.finance) state.finance = d.finance;
+if (!state.finance.transactions) state.finance.transactions = [];
+if (!state.zenkai.content) state.zenkai.content = [];
+if (!state.arise.content) state.arise.content = [];
+if (!state.arise.weight) state.arise.weight = [];
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 function clamp(n,min,max){ return Math.max(min, Math.min(max, Number(n)||0)); }
@@ -386,6 +504,11 @@ function renderDashboard(){
       const reRenderK = () => { save(); renderKpiList(kWrap, state.zenkai.kpis, 'var(--zenkai)', reRenderK); renderDashboard(); };
       renderKpiList(kWrap, state.zenkai.kpis, 'var(--zenkai)', reRenderK);
 
+      const cLabel = document.createElement('div'); cLabel.className='label'; cLabel.style.marginTop='4px'; cLabel.textContent='Content Pipeline';
+      body.appendChild(cLabel);
+      const cWrap = document.createElement('div'); body.appendChild(cWrap);
+      renderKanban(cWrap, state.zenkai.content, 'var(--zenkai)');
+
       const tLabel = document.createElement('div'); tLabel.className='label'; tLabel.style.marginTop='4px'; tLabel.textContent='Task';
       body.appendChild(tLabel);
       const tWrap = document.createElement('div'); body.appendChild(tWrap);
@@ -404,6 +527,16 @@ function renderDashboard(){
       const reRenderK = () => { save(); renderKpiList(kWrap, state.arise.kpis, 'var(--arise)', reRenderK); renderDashboard(); };
       renderKpiList(kWrap, state.arise.kpis, 'var(--arise)', reRenderK);
 
+      const wLabel = document.createElement('div'); wLabel.className='label'; wLabel.style.marginTop='4px'; wLabel.textContent='Bodyweight';
+      body.appendChild(wLabel);
+      const wWrap = document.createElement('div'); body.appendChild(wWrap);
+      renderWeightTracker(wWrap);
+
+      const cLabel = document.createElement('div'); cLabel.className='label'; cLabel.style.marginTop='4px'; cLabel.textContent='Content Pipeline';
+      body.appendChild(cLabel);
+      const cWrap = document.createElement('div'); body.appendChild(cWrap);
+      renderKanban(cWrap, state.arise.content, 'var(--arise)');
+
       const tLabel = document.createElement('div'); tLabel.className='label'; tLabel.style.marginTop='4px'; tLabel.textContent='Task';
       body.appendChild(tLabel);
       const tWrap = document.createElement('div'); body.appendChild(tWrap);
@@ -413,6 +546,69 @@ function renderDashboard(){
   }));
 
   renderTrendChart();
+}
+
+// ---------- CONTENT PIPELINE (kanban) ----------
+const CONTENT_STAGES = ['Idea','Girato','Editing','Programmato','Pubblicato'];
+function renderKanban(container, items, color){
+  container.innerHTML = '';
+  const board = document.createElement('div'); board.className='kanban';
+  CONTENT_STAGES.forEach(stage=>{
+    const col = document.createElement('div'); col.className='kanban-col';
+    col.innerHTML = `<div class="kanban-col-title">${stage}</div>`;
+    items.filter(it=>it.stage===stage).forEach(it=>{
+      const card = document.createElement('div'); card.className='kanban-card';
+      card.innerHTML = `<input type="text" value="${it.title}"><div class="kanban-card-row"><select></select><button class="icon-btn">${ICONS.trash}</button></div>`;
+      card.querySelector('input').oninput = e => { it.title = e.target.value; save(); };
+      const sel = card.querySelector('select');
+      CONTENT_STAGES.forEach(s=>{ const op=document.createElement('option'); op.value=s; op.textContent=s; if(s===stage) op.selected=true; sel.appendChild(op); });
+      sel.onchange = e => { it.stage = e.target.value; save(); renderDashboard(); };
+      card.querySelector('.icon-btn').onclick = () => { const idx=items.indexOf(it); items.splice(idx,1); save(); renderDashboard(); };
+      col.appendChild(card);
+    });
+    if(stage==='Idea'){
+      const addBtn = document.createElement('button'); addBtn.className='kanban-add'; addBtn.textContent='+ Nuovo';
+      addBtn.onclick = () => { const title = prompt('Titolo contenuto:'); if(!title) return; items.push({id:uid(), title, stage:'Idea'}); save(); renderDashboard(); };
+      col.appendChild(addBtn);
+    }
+    board.appendChild(col);
+  });
+  container.appendChild(board);
+}
+
+// ---------- BODYWEIGHT TRACKER ----------
+let weightChart;
+function renderWeightTracker(container){
+  container.innerHTML = `
+    <div class="weight-add"><input type="date" id="wDate"><input type="number" step="0.1" id="wKg" placeholder="kg"><button id="wAddBtn">+</button></div>
+    <div class="weight-chart"><canvas id="weightChartCanvas"></canvas></div>
+    <div class="weight-list" id="weightRows"></div>
+  `;
+  const dateInput = container.querySelector('#wDate');
+  dateInput.value = todayStr();
+  container.querySelector('#wAddBtn').onclick = () => {
+    const date = dateInput.value; const kg = Number(container.querySelector('#wKg').value);
+    if(!date || !kg) return;
+    state.arise.weight = state.arise.weight.filter(w=>w.date!==date);
+    state.arise.weight.push({date, kg});
+    state.arise.weight.sort((a,b)=> a.date>b.date?1:-1);
+    save(); renderDashboard();
+  };
+  const rows = container.querySelector('#weightRows');
+  if(!state.arise.weight.length) rows.innerHTML = '<div class="empty-note">Nessuna pesata registrata.</div>';
+  [...state.arise.weight].reverse().slice(0,8).forEach(w=>{
+    const row = document.createElement('div'); row.className='weight-row';
+    row.innerHTML = `<span>${w.date}</span><span>${w.kg} kg</span>`;
+    rows.appendChild(row);
+  });
+  const ctx = container.querySelector('#weightChartCanvas').getContext('2d');
+  if(weightChart) weightChart.destroy();
+  weightChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels: state.arise.weight.map(w=>w.date.slice(5)), datasets:[{ data: state.arise.weight.map(w=>w.kg), borderColor:'#E8A33D', backgroundColor:'rgba(232,163,61,0.15)', borderWidth:2, pointRadius:2, fill:true, tension:0.3 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{ x:{grid:{color:'#2A2A32'},ticks:{color:'#87878F',font:{size:8}}}, y:{grid:{color:'#2A2A32'},ticks:{color:'#87878F',font:{size:9}}} } }
+  });
 }
 
 // ---------- VITA ----------
@@ -444,7 +640,7 @@ function numField(key, label, prefix){
     const wrap = document.createElement('div'); wrap.className='fin-nums';
     wrap.innerHTML = `<span class="label" style="font-size:9px">${label}</span>`;
     const inp = document.createElement('input'); inp.type='number'; inp.value = item[key];
-    inp.oninput = e => { item[key] = Number(e.target.value); save(); };
+    inp.oninput = e => { item[key] = Number(e.target.value); save(); renderSummary(); };
     wrap.appendChild(inp);
     return wrap;
   };
@@ -465,7 +661,7 @@ function checkField(key, label){
     const wrap = document.createElement('label'); wrap.style.display='flex'; wrap.style.alignItems='center'; wrap.style.gap='4px';
     wrap.innerHTML = `<span class="label" style="font-size:9px">${label}</span>`;
     const chk = document.createElement('input'); chk.type='checkbox'; chk.className='checkbox'; chk.checked = !!item[key];
-    chk.onchange = e => { item[key] = e.target.checked; save(); };
+    chk.onchange = e => { item[key] = e.target.checked; save(); renderSummary(); };
     wrap.appendChild(chk);
     return wrap;
   };
@@ -507,6 +703,7 @@ function renderFinSection(containerId, addContainerId, arr, fields, addFieldsDef
 }
 
 function renderFinance(){
+  renderSummary();
   renderFinSection('walletsList','walletsAdd', state.finance.wallets,
     [selectField('tipo','Tipo',['Cash','Bank','Investimenti']), numField('saldo','Saldo €')],
     null, {name:'Nuovo wallet', tipo:'Cash', saldo:0});
@@ -563,6 +760,7 @@ document.getElementById('logBtn').onclick = () => {
   const orig = btn.textContent; btn.textContent = '✓ Loggato';
   setTimeout(()=>{ btn.textContent = orig; }, 1600);
   renderTrendChart();
+  renderStreak();
 };
 
 // ---------- RESET ----------
@@ -585,11 +783,178 @@ document.querySelectorAll('.tab').forEach(tab=>{
 
 function refreshScores(){ /* placeholder for future live-score refresh needs */ }
 
+// ---------- CLOCK ----------
+function drawAnalogClock(){
+  const canvas = document.getElementById('analogClock');
+  const ctx = canvas.getContext('2d');
+  const r = 17, cx = 17, cy = 17;
+  ctx.clearRect(0,0,34,34);
+  ctx.beginPath(); ctx.arc(cx,cy,r-1,0,2*Math.PI); ctx.strokeStyle='#2A2A32'; ctx.lineWidth=1.5; ctx.stroke();
+  const now = new Date();
+  const s = now.getSeconds(), m = now.getMinutes(), h = now.getHours()%12;
+  const hand = (angleDeg, len, color, width) => {
+    const rad = (angleDeg-90) * Math.PI/180;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.lineTo(cx + len*Math.cos(rad), cy + len*Math.sin(rad));
+    ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap='round'; ctx.stroke();
+  };
+  hand((h + m/60)*30, r*0.5, '#EDEDEF', 2);
+  hand(m*6, r*0.75, '#EDEDEF', 1.5);
+  hand(s*6, r*0.8, '#5EEAD4', 1);
+  ctx.beginPath(); ctx.arc(cx,cy,1.5,0,2*Math.PI); ctx.fillStyle='#5EEAD4'; ctx.fill();
+}
+function updateClock(){
+  const now = new Date();
+  document.getElementById('digitalTime').textContent = now.toLocaleTimeString('it-IT');
+  document.getElementById('digitalDate').textContent = now.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'});
+  drawAnalogClock();
+}
+setInterval(updateClock, 1000);
+
+// ---------- STREAK ----------
+function computeStreak(){
+  if(!state.history.length) return 0;
+  const dates = new Set(state.history.map(h=>h.date));
+  let streak = 0;
+  let d = new Date();
+  // if today not logged yet, streak counts back from yesterday
+  if(!dates.has(todayStr())) d.setDate(d.getDate()-1);
+  while(true){
+    const ds = d.toISOString().slice(0,10);
+    if(dates.has(ds)){ streak++; d.setDate(d.getDate()-1); } else break;
+  }
+  return streak;
+}
+function renderStreak(){ document.getElementById('streakNum').textContent = computeStreak(); }
+
+// ---------- FINANCE SUMMARY ----------
+function renderSummary(){
+  const f = state.finance;
+  const assets = f.wallets.reduce((s,w)=>s+Number(w.saldo||0),0);
+  const debts = f.debts.filter(d=>!d.pagato).reduce((s,d)=>s+Number(d.importo||0),0);
+  const netWorth = assets - debts;
+  const budgetTotal = f.budgets.reduce((s,b)=>s+Number(b.limite||0),0);
+  const budgetSpent = f.budgets.reduce((s,b)=>s+Number(b.speso||0),0);
+  const cells = [
+    {label:'Net Worth', val:'€'+netWorth.toLocaleString('it-IT'), color: netWorth>=0?'var(--green)':'var(--red)'},
+    {label:'Assets totali', val:'€'+assets.toLocaleString('it-IT'), color:'var(--finance)'},
+    {label:'Debiti attivi', val:'€'+debts.toLocaleString('it-IT'), color:'var(--red)'},
+    {label:'Budget mensile', val:'€'+budgetSpent.toLocaleString('it-IT')+' / €'+budgetTotal.toLocaleString('it-IT'), color:'var(--text)'},
+  ];
+  const wrap = document.getElementById('summaryStrip');
+  wrap.innerHTML = cells.map(c=>`<div class="summary-cell"><div class="label">${c.label}</div><div class="sval" style="color:${c.color}">${c.val}</div></div>`).join('');
+}
+
+// ---------- INVESTMENT CALCULATOR ----------
+let calcChart;
+const calcFmt = n => new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);
+function renderCalc(){
+  const start = Number(document.getElementById('c-start').value);
+  const monthly = Number(document.getElementById('c-monthly').value);
+  const years = Number(document.getElementById('c-years').value);
+  const rate = Number(document.getElementById('c-rate').value);
+
+  document.getElementById('c-startVal').textContent = calcFmt(start);
+  document.getElementById('c-monthlyVal').textContent = calcFmt(monthly);
+  document.getElementById('c-yearsVal').textContent = years+' anni';
+  document.getElementById('c-rateVal').textContent = rate+'%';
+
+  const monthlyRate = rate/100/12;
+  let balance = start;
+  const labels = [0], points=[Math.round(balance)];
+  for(let m=1;m<=years*12;m++){
+    balance = balance*(1+monthlyRate) + monthly;
+    if(m%12===0){ labels.push(m/12); points.push(Math.round(balance)); }
+  }
+  const finalBalance = points[points.length-1];
+  const totalDeposited = start + monthly*years*12;
+  const freeMoney = finalBalance - totalDeposited;
+
+  document.getElementById('c-final').textContent = calcFmt(finalBalance);
+  document.getElementById('c-free').textContent = '+'+calcFmt(freeMoney)+' da interessi composti';
+
+  const ctx = document.getElementById('calcChart').getContext('2d');
+  if(calcChart){ calcChart.data.labels = labels.map(y=>'Anno '+y); calcChart.data.datasets[0].data = points; calcChart.update(); return; }
+  calcChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels: labels.map(y=>'Anno '+y), datasets:[{ data:points, borderColor:'#4ADE80', backgroundColor:'rgba(74,222,128,0.15)', borderWidth:2, pointRadius:0, fill:true, tension:0.3 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>calcFmt(c.parsed.y)}}},
+      scales:{ x:{grid:{color:'#2A2A32'},ticks:{color:'#87878F',font:{size:9}}}, y:{grid:{color:'#2A2A32'},ticks:{color:'#87878F',font:{size:9},callback:v=>(v/1000)+'k'}} } }
+  });
+}
+['c-start','c-monthly','c-years','c-rate'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', renderCalc);
+});
+
+// ---------- TRANSACTIONS ----------
+function renderTransactions(){
+  const wrap = document.getElementById('txnList');
+  wrap.innerHTML = '';
+  const list = [...state.finance.transactions].sort((a,b)=> (a.date<b.date?1:-1));
+  if(!list.length){ wrap.innerHTML = '<div class="empty-note">Nessuna transazione ancora.</div>'; return; }
+  list.slice(0,15).forEach(t=>{
+    const row = document.createElement('div'); row.className = 'txn-row';
+    const sign = t.tipo==='Spesa' ? '-' : t.tipo==='Entrata' ? '+' : '';
+    row.innerHTML = `<span>${t.name}</span><span class="txn-amt ${t.tipo.toLowerCase()}">${sign}€${Number(t.amount).toLocaleString('it-IT')}</span>`;
+    wrap.appendChild(row);
+  });
+}
+document.getElementById('txnAddBtn').onclick = () => {
+  const name = document.getElementById('txnName').value.trim();
+  const amount = Number(document.getElementById('txnAmt').value);
+  const tipo = document.getElementById('txnType').value;
+  if(!name || !amount) return;
+  state.finance.transactions.push({id:uid(), name, amount, tipo, date: todayStr()});
+  document.getElementById('txnName').value=''; document.getElementById('txnAmt').value='';
+  save(); renderTransactions();
+};
+
+// ---------- POMODORO ----------
+let pomoSeconds = 25*60, pomoRunning = false, pomoInterval = null;
+function pomoRender(){
+  const m = Math.floor(pomoSeconds/60).toString().padStart(2,'0');
+  const s = (pomoSeconds%60).toString().padStart(2,'0');
+  document.getElementById('pomoTime').textContent = m+':'+s;
+}
+document.querySelectorAll('.pomo-mode').forEach(btn=>{
+  btn.onclick = () => {
+    document.querySelectorAll('.pomo-mode').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    pomoSeconds = Number(btn.dataset.min)*60;
+    pomoRunning = false; clearInterval(pomoInterval);
+    document.getElementById('pomoStart').textContent = 'Start';
+    pomoRender();
+  };
+});
+document.getElementById('pomoStart').onclick = (e) => {
+  pomoRunning = !pomoRunning;
+  e.target.textContent = pomoRunning ? 'Pausa' : 'Start';
+  if(pomoRunning){
+    pomoInterval = setInterval(()=>{
+      pomoSeconds--;
+      if(pomoSeconds<=0){ clearInterval(pomoInterval); pomoRunning=false; document.getElementById('pomoStart').textContent='Start'; pomoSeconds=0; }
+      pomoRender();
+    },1000);
+  } else clearInterval(pomoInterval);
+};
+document.getElementById('pomoReset').onclick = () => {
+  clearInterval(pomoInterval); pomoRunning=false;
+  document.getElementById('pomoStart').textContent = 'Start';
+  const activeMode = document.querySelector('.pomo-mode.active');
+  pomoSeconds = Number(activeMode.dataset.min)*60;
+  pomoRender();
+};
+pomoRender();
+
 function renderAll(){
-  document.getElementById('tagline').textContent = 'Forge yourself. Sharpen every blade. — ' + todayStr();
+  document.getElementById('tagline').textContent = 'Forge yourself. Sharpen every blade.';
   renderDashboard();
   renderFinance();
   renderVita();
+  renderStreak();
+  updateClock();
+  renderCalc();
+  renderTransactions();
 }
 renderAll();
 </script>
