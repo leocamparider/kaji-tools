@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAJI — Command Center</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
+  :root {
+    --void:#0A0A0C; --panel:#151519; --panel2:#1C1C22; --border:#2A2A32; --borderSoft:#232329;
+    --text:#EDEDEF; --muted:#87878F; --faint:#55555C;
+    --leo:#5EEAD4; --zenkai:#B565F5; --arise:#E8A33D; --vita:#9CA3AF; --finance:#4ADE80;
+    --green:#34D399; --yellow:#F0B942; --red:#EF5B5B;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--void); font-family:'Inter',sans-serif; color:var(--text); -webkit-tap-highlight-color:transparent; }
+  ::-webkit-scrollbar { width:5px; height:5px; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+  .wrap { max-width:1000px; margin:0 auto; padding:16px; }
+  .topbar { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
+  .brand { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; }
+  .brand span { color:var(--faint); }
+  .tagline { font-size:11px; color:var(--muted); margin-top:2px; }
+  .topbtns { display:flex; gap:8px; align-items:center; }
+  button { font-family:'Inter',sans-serif; cursor:pointer; }
+  .btn { background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:8px 12px; font-size:12px; font-weight:500; }
+  .btn-icon { padding:8px; display:flex; align-items:center; justify-content:center; }
+  .btn-danger { background:rgba(239,91,91,0.12); border:1px solid var(--red); color:var(--red); }
+
+  .tabs { display:flex; gap:6px; margin-bottom:14px; overflow-x:auto; padding-bottom:2px; }
+  .tab { background:var(--panel); border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:8px 14px; font-size:12px; font-weight:600; white-space:nowrap; }
+  .tab.active { color:var(--void); background:var(--text); border-color:var(--text); }
+
+  .section { display:none; }
+  .section.active { display:block; }
+
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px; }
+  .panel-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .label { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); }
+
+  .grid3 { display:grid; grid-template-columns:1fr; gap:14px; }
+  @media(min-width:820px){ .grid3{ grid-template-columns:repeat(3,1fr); } }
+
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:10px; display:flex; flex-direction:column; }
+  .card-head { padding:14px; border-bottom:1px solid var(--borderSoft); }
+  .card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+  .card-id { display:flex; align-items:center; gap:8px; }
+  .card-icon { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .card-title { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; }
+  .card-sub { font-size:10px; color:var(--muted); }
+  .card-score-wrap { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .card-score { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; }
+  .statuspills { display:flex; gap:4px; }
+  .pill { width:13px; height:13px; border-radius:50%; border:1.5px solid; background:transparent; padding:0; }
+  .mq-input { width:100%; font-size:12px; font-style:italic; background:var(--panel2); border:1px solid var(--borderSoft); color:var(--text); border-radius:5px; padding:6px 8px; outline:none; }
+  .card-body { padding:14px; display:flex; flex-direction:column; gap:14px; }
+
+  .blade-row { margin-bottom:9px; }
+  .blade-top { display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; }
+  .blade-num { width:38px; background:transparent; border:none; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:11px; text-align:right; outline:none; }
+  .bar-track { width:100%; background:var(--panel2); border:1px solid var(--borderSoft); height:9px; overflow:hidden; }
+  .bar-fill { height:100%; clip-path:polygon(0 0,100% 0,94% 50%,100% 100%,0 100%); transition:width .25s; }
+
+  .kpi-row { background:var(--panel2); border-radius:6px; padding:8px 10px; margin-bottom:6px; }
+  .kpi-top { display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px; }
+  .kpi-label { background:transparent; border:none; color:var(--text); font-size:13px; outline:none; flex:1; min-width:0; }
+  .kpi-nums { display:flex; align-items:center; gap:3px; flex-shrink:0; }
+  .kpi-nums input { background:transparent; border:none; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:11px; outline:none; }
+  .kpi-nums .val { width:44px; text-align:right; }
+  .kpi-nums .tgt { width:44px; color:var(--muted); }
+  .kpi-nums .unit { width:32px; color:var(--muted); }
+  .icon-btn { background:none; border:none; color:var(--faint); padding:2px; display:flex; }
+  .kpi-add { display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:5px; margin-top:6px; }
+  .kpi-add input { font-size:11px; border-radius:5px; padding:6px 7px; background:var(--panel2); border:1px solid var(--borderSoft); color:var(--text); outline:none; width:100%; }
+  .kpi-add button { background:var(--panel2); border:1px solid var(--borderSoft); border-radius:5px; display:flex; align-items:center; justify-content:center; }
+
+  .task-add { display:flex; gap:6px; margin-bottom:8px; }
+  .task-add input { flex:1; font-size:13px; border-radius:5px; padding:7px 9px; background:var(--panel2); border:1px solid var(--borderSoft); color:var(--text); outline:none; }
+  .task-add button { background:var(--panel2); border:1px solid var(--borderSoft); border-radius:5px; padding:0 9px; display:flex; align-items:center; }
+  .task-list { display:flex; flex-direction:column; gap:5px; max-height:180px; overflow-y:auto; padding-right:2px; }
+  .task-item { display:flex; align-items:center; gap:8px; background:var(--panel2); border-radius:5px; padding:7px 9px; }
+  .task-check { width:16px; height:16px; border-radius:4px; border:1.5px solid var(--faint); background:transparent; display:flex; align-items:center; justify-content:center; flex-shrink:0; padding:0; }
+  .task-text { flex:1; font-size:13px; }
+  .task-text.done { color:var(--faint); text-decoration:line-through; }
+  .empty-note { font-size:11px; font-style:italic; color:var(--faint); padding:4px 0; }
+
+  .chart-wrap { height:200px; }
+  .legend { display:flex; gap:12px; font-size:11px; font-family:'JetBrains Mono',monospace; }
+  .dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:4px; }
+
+  .fin-grid { display:grid; grid-template-columns:1fr; gap:12px; }
+  @media(min-width:700px){ .fin-grid{ grid-template-columns:repeat(2,1fr); } }
+  .fin-item { background:var(--panel2); border-radius:6px; padding:9px 11px; margin-bottom:6px; }
+  .fin-top { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px; }
+  .fin-top input[type=text] { background:transparent; border:none; color:var(--text); font-size:13px; outline:none; flex:1; min-width:0; }
+  .fin-nums input { background:transparent; border:none; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:11px; outline:none; width:56px; text-align:right; }
+  select { background:var(--panel); border:1px solid var(--borderSoft); color:var(--text); font-size:11px; border-radius:4px; padding:3px 5px; }
+  .checkbox { width:15px; height:15px; }
+  .fin-add { display:grid; grid-template-columns:1fr; gap:5px; margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <div class="brand">KAJI <span>//</span> COMMAND CENTER</div>
+      <div class="tagline" id="tagline">Forge yourself. Sharpen every blade.</div>
+    </div>
+    <div class="topbtns">
+      <button class="btn" id="logBtn">Log oggi</button>
+      <button class="btn btn-icon" id="resetBtn" title="Reset">⟲</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="dash">Dashboard</button>
+    <button class="tab" data-tab="finance">Finance</button>
+    <button class="tab" data-tab="vita">Vita</button>
+  </div>
+
+  <div class="section active" id="sec-dash">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="label">Andamento generale</span>
+        <div class="legend">
+          <span><span class="dot" style="background:var(--leo)"></span>LEO</span>
+          <span><span class="dot" style="background:var(--zenkai)"></span>ZENKAI</span>
+          <span><span class="dot" style="background:var(--arise)"></span>ARISE</span>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="grid3" id="projectCards"></div>
+  </div>
+
+  <div class="section" id="sec-finance">
+    <div class="panel">
+      <div class="panel-head"><span class="label">💳 Wallets</span></div>
+      <div id="walletsList"></div>
+      <div class="fin-add" id="walletsAdd"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span class="label">📊 Budget mensili</span></div>
+      <div id="budgetsList"></div>
+      <div class="fin-add" id="budgetsAdd"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span class="label">🎯 Obiettivi finanziari</span></div>
+      <div id="goalsList"></div>
+      <div class="fin-add" id="goalsAdd"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span class="label">🔁 Abbonamenti</span></div>
+      <div id="subsList"></div>
+      <div class="fin-add" id="subsAdd"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span class="label">💸 Debiti attivi</span></div>
+      <div id="debtsList"></div>
+      <div class="fin-add" id="debtsAdd"></div>
+    </div>
+  </div>
+
+  <div class="section" id="sec-vita">
+    <div class="panel">
+      <div class="panel-head"><span class="label">Metriche</span></div>
+      <div id="vitaKpis"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span class="label">Task sparsi</span></div>
+      <div id="vitaTasks"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- STORAGE ----------
+const KEY = 'kaji-mega-v1';
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+function defaultState() {
+  return {
+    leo: { status:'yellow', mainQuest:'', blades:[
+      {id:'body',name:'Body',value:0},{id:'mind',name:'Mind',value:0},
+      {id:'career',name:'Career',value:0},{id:'creation',name:'Creation',value:0},
+      {id:'independence',name:'Independence',value:0}
+    ], tasks:[] },
+    zenkai: { status:'yellow', mainQuest:'', kpis:[
+      {id:uid(),label:'Membri community',value:0,target:0,unit:''},
+      {id:uid(),label:'Eventi/mese',value:0,target:0,unit:''},
+      {id:uid(),label:'Membri crew',value:0,target:0,unit:''}
+    ], tasks:[] },
+    arise: { status:'yellow', mainQuest:'', kpis:[
+      {id:uid(),label:'Clienti attivi',value:0,target:0,unit:''},
+      {id:uid(),label:'Sessioni/settimana',value:0,target:0,unit:''},
+      {id:uid(),label:'Schede fatte',value:0,target:0,unit:''}
+    ], tasks:[] },
+    vita: { kpis:[{id:uid(),label:'Libri letti',value:0,target:0,unit:''}], tasks:[] },
+    finance: {
+      wallets:[], budgets:[], goals:[], subs:[], debts:[]
+    },
+    history: []
+  };
+}
+
+let state;
+try { state = JSON.parse(localStorage.getItem(KEY)); } catch(e){ state = null; }
+if (!state) state = defaultState();
+// backfill missing sections for older saves
+const d = defaultState();
+for (const k of Object.keys(d)) if (!(k in state)) state[k] = d[k];
+if (!state.finance) state.finance = d.finance;
+
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+function clamp(n,min,max){ return Math.max(min, Math.min(max, Number(n)||0)); }
+function pct(val,target){ return target>0 ? clamp((val/target)*100,0,100) : 0; }
+
+// ---------- SCORES ----------
+function leoScore(){
+  const b = state.leo.blades;
+  const bladeAvg = b.length ? b.reduce((s,x)=>s+Number(x.value||0),0)/b.length : 0;
+  return Math.round(bladeAvg);
+}
+function kpiScore(kpis){
+  const valid = kpis.filter(k=>Number(k.target)>0);
+  if(!valid.length) return 0;
+  return Math.round(valid.reduce((s,k)=>s+pct(k.value,k.target),0)/valid.length);
+}
+
+// ---------- ICONS (inline svg, no deps) ----------
+const ICONS = {
+  check: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>',
+  trash: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>',
+  plus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+};
+
+// ---------- GENERIC RENDERERS ----------
+function renderTaskList(container, tasks, color, onChange){
+  container.innerHTML = '';
+  const addRow = document.createElement('div');
+  addRow.className = 'task-add';
+  addRow.innerHTML = `<input type="text" placeholder="Nuovo task..."><button>${ICONS.plus}</button>`;
+  const input = addRow.querySelector('input');
+  const addBtn = addRow.querySelector('button');
+  addBtn.style.color = color;
+  const submit = () => { const v=input.value.trim(); if(!v) return; tasks.push({id:uid(),text:v,done:false}); input.value=''; onChange(); };
+  addBtn.onclick = submit;
+  input.onkeydown = e => { if(e.key==='Enter') submit(); };
+  container.appendChild(addRow);
+
+  const list = document.createElement('div');
+  list.className = 'task-list';
+  if(!tasks.length){ list.innerHTML = '<div class="empty-note">Nessun task attivo.</div>'; }
+  tasks.forEach(t=>{
+    const row = document.createElement('div');
+    row.className = 'task-item';
+    row.innerHTML = `<button class="task-check">${t.done?ICONS.check:''}</button><span class="task-text${t.done?' done':''}">${t.text}</span><button class="icon-btn">${ICONS.trash}</button>`;
+    row.querySelector('.task-check').style.borderColor = t.done ? color : '';
+    row.querySelector('.task-check').style.background = t.done ? color : '';
+    row.querySelector('.task-check').style.color = 'var(--void)';
+    row.querySelector('.task-check').onclick = () => { t.done = !t.done; onChange(); };
+    row.querySelector('.icon-btn').onclick = () => { const idx=tasks.indexOf(t); tasks.splice(idx,1); onChange(); };
+    list.appendChild(row);
+  });
+  container.appendChild(list);
+}
+
+function renderKpiList(container, kpis, color, onChange){
+  container.innerHTML = '';
+  kpis.forEach(k=>{
+    const row = document.createElement('div');
+    row.className = 'kpi-row';
+    row.innerHTML = `
+      <div class="kpi-top">
+        <input class="kpi-label" type="text" value="${k.label}">
+        <div class="kpi-nums">
+          <input class="val" type="number" value="${k.value}">
+          <span style="color:var(--faint)">/</span>
+          <input class="tgt" type="number" value="${k.target}">
+          <input class="unit" type="text" value="${k.unit||''}" placeholder="un.">
+          <button class="icon-btn">${ICONS.trash}</button>
+        </div>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct(k.value,k.target)}%;background:linear-gradient(90deg, ${color}55, ${color});box-shadow:0 0 8px ${color}88"></div></div>
+    `;
+    row.querySelector('.kpi-label').oninput = e => { k.label = e.target.value; save(); refreshScores(); };
+    row.querySelector('.val').oninput = e => { k.value = Number(e.target.value); onChange(); };
+    row.querySelector('.tgt').oninput = e => { k.target = Number(e.target.value); onChange(); };
+    row.querySelector('.unit').oninput = e => { k.unit = e.target.value; save(); };
+    row.querySelector('.icon-btn').onclick = () => { const idx=kpis.indexOf(k); kpis.splice(idx,1); onChange(); };
+    container.appendChild(row);
+  });
+
+  const addRow = document.createElement('div');
+  addRow.className = 'kpi-add';
+  addRow.innerHTML = `<input placeholder="Metrica" class="a-label"><input placeholder="Target" type="number" class="a-target"><input placeholder="Unità" class="a-unit"><button>${ICONS.plus}</button>`;
+  addRow.querySelector('button').style.color = color;
+  addRow.querySelector('button').onclick = () => {
+    const label = addRow.querySelector('.a-label').value.trim();
+    const target = addRow.querySelector('.a-target').value;
+    const unit = addRow.querySelector('.a-unit').value.trim();
+    if(!label || !target) return;
+    kpis.push({id:uid(), label, value:0, target:Number(target), unit});
+    onChange();
+  };
+  container.appendChild(addRow);
+}
+
+// ---------- PROJECT CARDS ----------
+const STATUS_COLORS = { green:'var(--green)', yellow:'var(--yellow)', red:'var(--red)' };
+
+function renderStatusPills(container, obj, onChange){
+  container.innerHTML = '';
+  ['green','yellow','red'].forEach(s=>{
+    const b = document.createElement('button');
+    b.className = 'pill';
+    b.style.borderColor = STATUS_COLORS[s];
+    b.style.background = obj.status===s ? STATUS_COLORS[s] : 'transparent';
+    b.onclick = () => { obj.status = s; onChange(); };
+    container.appendChild(b);
+  });
+}
+
+function makeCard(cfg){
+  // cfg: {key, icon, title, sub, color, obj, score, extraBody(el)}
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-head">
+      <div class="card-top">
+        <div class="card-id">
+          <div class="card-icon" style="background:${cfg.color}18;color:${cfg.color}">${cfg.icon}</div>
+          <div><div class="card-title">${cfg.title}</div><div class="card-sub">${cfg.sub}</div></div>
+        </div>
+        <div class="card-score-wrap">
+          <div class="card-score" style="color:${cfg.color}">${cfg.score}</div>
+          <div class="statuspills"></div>
+        </div>
+      </div>
+      <input class="mq-input" type="text" placeholder="Main quest attuale..." value="${cfg.obj.mainQuest||''}">
+    </div>
+    <div class="card-body"></div>
+  `;
+  const pillsEl = card.querySelector('.statuspills');
+  renderStatusPills(pillsEl, cfg.obj, () => { save(); renderDashboard(); });
+  card.querySelector('.mq-input').oninput = e => { cfg.obj.mainQuest = e.target.value; save(); };
+  const body = card.querySelector('.card-body');
+  cfg.fillBody(body);
+  return card;
+}
+
+function renderDashboard(){
+  const wrap = document.getElementById('projectCards');
+  wrap.innerHTML = '';
+
+  // LEO
+  wrap.appendChild(makeCard({
+    icon:'⚔️', title:'LEO', sub:'Le cinque lame', color:'var(--leo)', obj:state.leo, score:leoScore(),
+    fillBody:(body)=>{
+      const bladesLabel = document.createElement('div'); bladesLabel.className='label'; bladesLabel.style.marginBottom='8px'; bladesLabel.textContent='Blades';
+      body.appendChild(bladesLabel);
+      const bladesWrap = document.createElement('div');
+      state.leo.blades.forEach(b=>{
+        const row = document.createElement('div'); row.className='blade-row';
+        row.innerHTML = `<div class="blade-top"><span>${b.name}</span><input class="blade-num" type="number" min="0" max="100" value="${b.value}"></div><div class="bar-track"><div class="bar-fill" style="width:${b.value}%;background:linear-gradient(90deg,var(--leo)55,var(--leo));box-shadow:0 0 8px #5EEAD488"></div></div>`;
+        row.querySelector('.blade-num').oninput = e => { b.value = clamp(e.target.value,0,100); save(); renderDashboard(); };
+        bladesWrap.appendChild(row);
+      });
+      body.appendChild(bladesWrap);
+      const taskLabel = document.createElement('div'); taskLabel.className='label'; taskLabel.style.marginTop='4px'; taskLabel.textContent='Task';
+      body.appendChild(taskLabel);
+      const taskWrap = document.createElement('div');
+      body.appendChild(taskWrap);
+      renderTaskList(taskWrap, state.leo.tasks, 'var(--leo)', ()=>{ save(); renderTaskList(taskWrap, state.leo.tasks, 'var(--leo)', arguments.callee); });
+    }
+  }));
+
+  // ZENKAI
+  wrap.appendChild(makeCard({
+    icon:'🔥', title:'ZENKAI', sub:'Community & brand', color:'var(--zenkai)', obj:state.zenkai, score:kpiScore(state.zenkai.kpis),
+    fillBody:(body)=>{
+      const kLabel = document.createElement('div'); kLabel.className='label'; kLabel.style.marginBottom='8px'; kLabel.textContent='Metriche';
+      body.appendChild(kLabel);
+      const kWrap = document.createElement('div'); body.appendChild(kWrap);
+      const reRenderK = () => { save(); renderKpiList(kWrap, state.zenkai.kpis, 'var(--zenkai)', reRenderK); renderDashboard(); };
+      renderKpiList(kWrap, state.zenkai.kpis, 'var(--zenkai)', reRenderK);
+
+      const tLabel = document.createElement('div'); tLabel.className='label'; tLabel.style.marginTop='4px'; tLabel.textContent='Task';
+      body.appendChild(tLabel);
+      const tWrap = document.createElement('div'); body.appendChild(tWrap);
+      const reRenderT = () => { save(); renderTaskList(tWrap, state.zenkai.tasks, 'var(--zenkai)', reRenderT); };
+      renderTaskList(tWrap, state.zenkai.tasks, 'var(--zenkai)', reRenderT);
+    }
+  }));
+
+  // ARISE
+  wrap.appendChild(makeCard({
+    icon:'🏋️', title:'ARISE', sub:'PT & method', color:'var(--arise)', obj:state.arise, score:kpiScore(state.arise.kpis),
+    fillBody:(body)=>{
+      const kLabel = document.createElement('div'); kLabel.className='label'; kLabel.style.marginBottom='8px'; kLabel.textContent='Metriche';
+      body.appendChild(kLabel);
+      const kWrap = document.createElement('div'); body.appendChild(kWrap);
+      const reRenderK = () => { save(); renderKpiList(kWrap, state.arise.kpis, 'var(--arise)', reRenderK); renderDashboard(); };
+      renderKpiList(kWrap, state.arise.kpis, 'var(--arise)', reRenderK);
+
+      const tLabel = document.createElement('div'); tLabel.className='label'; tLabel.style.marginTop='4px'; tLabel.textContent='Task';
+      body.appendChild(tLabel);
+      const tWrap = document.createElement('div'); body.appendChild(tWrap);
+      const reRenderT = () => { save(); renderTaskList(tWrap, state.arise.tasks, 'var(--arise)', reRenderT); };
+      renderTaskList(tWrap, state.arise.tasks, 'var(--arise)', reRenderT);
+    }
+  }));
+
+  renderTrendChart();
+}
+
+// ---------- VITA ----------
+function renderVita(){
+  const kWrap = document.getElementById('vitaKpis');
+  const reRenderK = () => { save(); renderKpiList(kWrap, state.vita.kpis, 'var(--vita)', reRenderK); };
+  renderKpiList(kWrap, state.vita.kpis, 'var(--vita)', reRenderK);
+
+  const tWrap = document.getElementById('vitaTasks');
+  const reRenderT = () => { save(); renderTaskList(tWrap, state.vita.tasks, 'var(--vita)', reRenderT); };
+  renderTaskList(tWrap, state.vita.tasks, 'var(--vita)', reRenderT);
+}
+
+// ---------- FINANCE ----------
+function renderFinItem(container, item, fields, onChange){
+  const row = document.createElement('div');
+  row.className = 'fin-item';
+  let topHtml = `<input type="text" class="f-name" value="${item.name}">`;
+  row.innerHTML = `<div class="fin-top">${topHtml}<button class="icon-btn f-del">${ICONS.trash}</button></div><div class="fin-fields"></div>`;
+  row.querySelector('.f-name').oninput = e => { item.name = e.target.value; save(); };
+  row.querySelector('.f-del').onclick = () => { onChange.remove(item); };
+  const fieldsWrap = row.querySelector('.fin-fields');
+  fieldsWrap.style.display = 'flex'; fieldsWrap.style.flexWrap='wrap'; fieldsWrap.style.gap='6px'; fieldsWrap.style.alignItems='center';
+  fields.forEach(f => fieldsWrap.appendChild(f(item)));
+  container.appendChild(row);
+}
+function numField(key, label, prefix){
+  return (item) => {
+    const wrap = document.createElement('div'); wrap.className='fin-nums';
+    wrap.innerHTML = `<span class="label" style="font-size:9px">${label}</span>`;
+    const inp = document.createElement('input'); inp.type='number'; inp.value = item[key];
+    inp.oninput = e => { item[key] = Number(e.target.value); save(); };
+    wrap.appendChild(inp);
+    return wrap;
+  };
+}
+function selectField(key, label, options){
+  return (item) => {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `<span class="label" style="font-size:9px;margin-right:4px">${label}</span>`;
+    const sel = document.createElement('select');
+    options.forEach(o=>{ const op=document.createElement('option'); op.value=o; op.textContent=o; if(item[key]===o) op.selected=true; sel.appendChild(op); });
+    sel.onchange = e => { item[key] = e.target.value; save(); };
+    wrap.appendChild(sel);
+    return wrap;
+  };
+}
+function checkField(key, label){
+  return (item) => {
+    const wrap = document.createElement('label'); wrap.style.display='flex'; wrap.style.alignItems='center'; wrap.style.gap='4px';
+    wrap.innerHTML = `<span class="label" style="font-size:9px">${label}</span>`;
+    const chk = document.createElement('input'); chk.type='checkbox'; chk.className='checkbox'; chk.checked = !!item[key];
+    chk.onchange = e => { item[key] = e.target.checked; save(); };
+    wrap.appendChild(chk);
+    return wrap;
+  };
+}
+function dateField(key, label){
+  return (item) => {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `<span class="label" style="font-size:9px;margin-right:4px">${label}</span>`;
+    const inp = document.createElement('input'); inp.type='date'; inp.value = item[key]||''; inp.style.background='var(--panel2)'; inp.style.border='1px solid var(--borderSoft)'; inp.style.color='var(--text)'; inp.style.fontSize='11px'; inp.style.borderRadius='4px'; inp.style.padding='2px 4px';
+    inp.onchange = e => { item[key] = e.target.value; save(); };
+    wrap.appendChild(inp);
+    return wrap;
+  };
+}
+function textField(key, label){
+  return (item) => {
+    const wrap = document.createElement('div'); wrap.style.flex='1'; wrap.style.minWidth='120px';
+    const inp = document.createElement('input'); inp.type='text'; inp.placeholder=label; inp.value = item[key]||'';
+    inp.style.background='var(--panel2)'; inp.style.border='1px solid var(--borderSoft)'; inp.style.color='var(--text)'; inp.style.fontSize='11px'; inp.style.borderRadius='4px'; inp.style.padding='4px 6px'; inp.style.width='100%';
+    inp.oninput = e => { item[key] = e.target.value; save(); };
+    wrap.appendChild(inp);
+    return wrap;
+  };
+}
+
+function renderFinSection(containerId, addContainerId, arr, fields, addFieldsDefs, defaults){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const onChange = { remove:(item)=>{ const i=arr.indexOf(item); arr.splice(i,1); save(); renderFinance(); } };
+  if(!arr.length) container.innerHTML = '<div class="empty-note">Nessuna riga ancora.</div>';
+  arr.forEach(item => renderFinItem(container, item, fields, onChange));
+
+  const addWrap = document.getElementById(addContainerId);
+  addWrap.innerHTML = '';
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn'; addBtn.style.marginTop='4px'; addBtn.textContent = '+ Aggiungi';
+  addBtn.onclick = () => { arr.push({...defaults, id:uid()}); save(); renderFinance(); };
+  addWrap.appendChild(addBtn);
+}
+
+function renderFinance(){
+  renderFinSection('walletsList','walletsAdd', state.finance.wallets,
+    [selectField('tipo','Tipo',['Cash','Bank','Investimenti']), numField('saldo','Saldo €')],
+    null, {name:'Nuovo wallet', tipo:'Cash', saldo:0});
+
+  renderFinSection('budgetsList','budgetsAdd', state.finance.budgets,
+    [numField('speso','Speso €'), numField('limite','Limite €')],
+    null, {name:'Nuova categoria', speso:0, limite:0});
+
+  renderFinSection('goalsList','goalsAdd', state.finance.goals,
+    [numField('attuale','Attuale €'), numField('target','Target €'), dateField('data','Data')],
+    null, {name:'Nuovo obiettivo', attuale:0, target:0, data:''});
+
+  renderFinSection('subsList','subsAdd', state.finance.subs,
+    [numField('importo','€'), selectField('frequenza','Freq',['Mensile','Annuale']), checkField('pagato','Pagato'), dateField('rinnovo','Rinnovo')],
+    null, {name:'Nuovo abbonamento', importo:0, frequenza:'Mensile', pagato:false, rinnovo:''});
+
+  renderFinSection('debtsList','debtsAdd', state.finance.debts,
+    [numField('importo','€'), checkField('pagato','Pagato'), textField('note','Note')],
+    null, {name:'Nuovo debito', importo:0, pagato:false, note:''});
+}
+
+// ---------- TREND CHART ----------
+let trendChart;
+function renderTrendChart(){
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  const labels = state.history.map(h=>h.date);
+  const mk = (key,color) => ({ label:key, data:state.history.map(h=>h[key]), borderColor:color, backgroundColor:color+'22', borderWidth:2, pointRadius:0, tension:0.3, fill:false });
+  if (trendChart) trendChart.destroy();
+  trendChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[ mk('leoScore','#5EEAD4'), mk('zenkaiScore','#B565F5'), mk('ariseScore','#E8A33D') ] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ grid:{color:'#2A2A32'}, ticks:{color:'#87878F', font:{size:9}} },
+        y:{ min:0, max:100, grid:{color:'#2A2A32'}, ticks:{color:'#87878F', font:{size:9}} }
+      }
+    }
+  });
+}
+
+// ---------- LOG OGGI ----------
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+document.getElementById('logBtn').onclick = () => {
+  const day = todayStr();
+  const s = { leoScore:leoScore(), zenkaiScore:kpiScore(state.zenkai.kpis), ariseScore:kpiScore(state.arise.kpis) };
+  state.history = state.history.filter(h=>h.date!==day);
+  state.history.push({date:day, ...s});
+  state.history.sort((a,b)=> a.date>b.date?1:-1);
+  state.history = state.history.slice(-60);
+  save();
+  const btn = document.getElementById('logBtn');
+  const orig = btn.textContent; btn.textContent = '✓ Loggato';
+  setTimeout(()=>{ btn.textContent = orig; }, 1600);
+  renderTrendChart();
+};
+
+// ---------- RESET ----------
+document.getElementById('resetBtn').onclick = () => {
+  if (!confirm('Confermi il reset completo? Tutti i dati verranno persi.')) return;
+  state = defaultState();
+  save();
+  renderAll();
+};
+
+// ---------- TABS ----------
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.onclick = () => {
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('sec-'+tab.dataset.tab).classList.add('active');
+  };
+});
+
+function refreshScores(){ /* placeholder for future live-score refresh needs */ }
+
+function renderAll(){
+  document.getElementById('tagline').textContent = 'Forge yourself. Sharpen every blade. — ' + todayStr();
+  renderDashboard();
+  renderFinance();
+  renderVita();
+}
+renderAll();
+</script>
+</body>
+</html>
