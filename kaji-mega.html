@@ -17,21 +17,23 @@
     --green:#34D399; --yellow:#F0B942; --red:#EF5B5B;
   }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--void); font-family:'Inter',sans-serif; color:var(--text); -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:var(--void); font-family:'Inter',sans-serif; color:var(--text); -webkit-tap-highlight-color:transparent; overflow-x:hidden; }
+  html { overflow-x:hidden; }
   ::-webkit-scrollbar { width:5px; height:5px; }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
   .wrap { max-width:1000px; margin:0 auto; padding:16px; }
-  .topbar { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
+  .topbar { display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+  .topbar-row1 { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; }
+  .topbtns { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   .brand { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; }
   .brand span { color:var(--faint); }
   .tagline { font-size:11px; color:var(--muted); margin-top:2px; }
-  .topbtns { display:flex; gap:8px; align-items:center; }
   button { font-family:'Inter',sans-serif; cursor:pointer; }
   .btn { background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:8px 12px; font-size:12px; font-weight:500; }
   .btn-icon { padding:8px; display:flex; align-items:center; justify-content:center; }
   .btn-danger { background:rgba(239,91,91,0.12); border:1px solid var(--red); color:var(--red); }
 
-  .tabs { display:flex; gap:6px; margin-bottom:14px; overflow-x:auto; padding-bottom:2px; }
+  .tabs { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
   .tab { background:var(--panel); border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:8px 14px; font-size:12px; font-weight:600; white-space:nowrap; }
   .tab.active { color:var(--void); background:var(--text); border-color:var(--text); }
 
@@ -179,9 +181,14 @@
         </div>
       </div>
       <div class="streak" id="streakBox">🔥 <b id="streakNum">0</b> giorni</div>
+    </div>
+    <div class="topbtns">
       <button class="btn" id="logBtn">Log oggi</button>
       <button class="btn btn-icon" id="resetBtn" title="Reset">⟲</button>
       <button class="btn btn-danger" id="resetConfirmBtn" style="display:none">Conferma reset</button>
+      <button class="btn" id="exportBtn" title="Esporta backup">⬇︎ Backup</button>
+      <button class="btn" id="importBtn" title="Importa backup">⬆︎ Ripristina</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none">
     </div>
   </div>
 
@@ -837,6 +844,58 @@ document.getElementById('logBtn').onclick = () => {
   renderTrendChart();
   renderStreak();
 };
+
+// ---------- BACKUP / RESTORE (protects against iOS storage isolation issues) ----------
+document.getElementById('exportBtn').onclick = () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'kaji-backup-' + todayStr() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+document.getElementById('importBtn').onclick = () => {
+  document.getElementById('importFile').click();
+};
+document.getElementById('importFile').onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!imported.leo || !imported.finance) { alert_fallback('File non valido.'); return; }
+      state = imported;
+      // re-run backfill in case the backup is from an older version
+      const dd = defaultState();
+      for (const k of Object.keys(dd)) if (!(k in state)) state[k] = dd[k];
+      if (!state.finance.transactions) state.finance.transactions = [];
+      if (!state.zenkai.content) state.zenkai.content = [];
+      if (!state.arise.content) state.arise.content = [];
+      if (!state.arise.weight) state.arise.weight = [];
+      if (!state.calc) state.calc = dd.calc;
+      state.leo.blades.forEach(b=>{ if (b.xp===undefined) { b.xp = Math.round(Number(b.value||0) * 5); delete b.value; } });
+      save();
+      renderAll();
+      importFeedback('Backup ripristinato ✓');
+    } catch(err) {
+      importFeedback('Errore nel file, riprova');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+};
+function importFeedback(msg){
+  const btn = document.getElementById('importBtn');
+  const orig = btn.textContent;
+  btn.textContent = msg;
+  btn.style.width = 'auto';
+  setTimeout(()=>{ btn.textContent = orig; }, 2200);
+}
+function alert_fallback(msg){ importFeedback(msg); }
 
 // ---------- RESET (no confirm(), blocked on iOS home-screen apps) ----------
 document.getElementById('resetBtn').onclick = () => {
