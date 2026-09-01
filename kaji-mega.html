@@ -323,6 +323,7 @@ function defaultState() {
     finance: {
       wallets:[], budgets:[], goals:[], subs:[], debts:[], transactions:[]
     },
+    calc: { start:1000, monthly:200, years:10, rate:8 },
     history: []
   };
 }
@@ -338,6 +339,7 @@ if (!state.finance.transactions) state.finance.transactions = [];
 if (!state.zenkai.content) state.zenkai.content = [];
 if (!state.arise.content) state.arise.content = [];
 if (!state.arise.weight) state.arise.weight = [];
+if (!state.calc) state.calc = d.calc;
 // migrate blades from old 0-100 "value" model to XP model
 state.leo.blades.forEach(b=>{ if (b.xp===undefined) { b.xp = Math.round(Number(b.value||0) * 5); delete b.value; } });
 
@@ -927,10 +929,15 @@ function renderSummary(){
 let calcChart;
 const calcFmt = n => new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);
 function renderCalc(){
-  const start = Number(document.getElementById('c-start').value);
-  const monthly = Number(document.getElementById('c-monthly').value);
-  const years = Number(document.getElementById('c-years').value);
-  const rate = Number(document.getElementById('c-rate').value);
+  document.getElementById('c-start').value = state.calc.start;
+  document.getElementById('c-monthly').value = state.calc.monthly;
+  document.getElementById('c-years').value = state.calc.years;
+  document.getElementById('c-rate').value = state.calc.rate;
+
+  const start = state.calc.start;
+  const monthly = state.calc.monthly;
+  const years = state.calc.years;
+  const rate = state.calc.rate;
 
   document.getElementById('c-startVal').textContent = calcFmt(start);
   document.getElementById('c-monthlyVal').textContent = calcFmt(monthly);
@@ -961,7 +968,12 @@ function renderCalc(){
   });
 }
 ['c-start','c-monthly','c-years','c-rate'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', renderCalc);
+  const key = id.replace('c-','');
+  document.getElementById(id).addEventListener('input', (e) => {
+    state.calc[key] = Number(e.target.value);
+    save();
+    renderCalc();
+  });
 });
 
 // ---------- TRANSACTIONS ----------
